@@ -25,10 +25,9 @@ GALOIS_HEAD_RET_ERROR_T galois_head::read(int sock, galois_head * head, void *re
     }
 
     if (flags & GALOIS_HEAD_CHECK_MAGICNUM) {
-        if (head->magic_num != NSHEAD_MAGICNUM) {
-            ul_writelog(UL_LOG_WARNING,
-                    "<%u> nshead_read magic num mismatch: ret %x want %x",
-                    head->log_id, head->magic_num, NSHEAD_MAGICNUM);
+        if (head->magic_num != GALOIS_HEAD_MAGICNUM) {
+            printf("<%u> nshead_read magic num mismatch: ret %x want %x",
+                    head->log_id, head->magic_num, GALOIS_HEAD_MAGICNUM);
             return GALOIS_HEAD_RET_EMAGICNUM;
         }
     }
@@ -58,7 +57,6 @@ GALOIS_HEAD_RET_ERROR_T galois_head::read(int sock, galois_head * head, void *re
         if (rlen <= 0)
             goto nshead_read_fail;
         else if (rlen != (int)(head->body_len - req_size)) {
-            ul_writelog(UL_LOG_WARNING,
             printf("<%u> nshead_read fail: ret %d want %d ERR[%m]",
                     head->log_id, rlen, int(head->body_len - req_size));
             return GALOIS_HEAD_RET_READ;
