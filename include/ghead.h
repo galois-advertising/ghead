@@ -16,8 +16,8 @@ namespace galois
 {
 enum GALOIS_HEAD_FLAGS_T {
     GALOIS_HEAD_CHECK_NONE = 0,
-    GALOIS_HEAD_CHECK_MAGICNUM = 0x01,    ///<检查magic_num是否正确
-    GALOIS_HEAD_CHECK_PARAM = 0x02,    ///<检查参数是否正确
+    GALOIS_HEAD_CHECK_MAGICNUM = 0x01,
+    GALOIS_HEAD_CHECK_PARAM = 0x02,
 };
 
 enum GALOIS_HEAD_RET_ERROR_T {

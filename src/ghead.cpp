@@ -1,6 +1,6 @@
-#include "galois-head.h"
+#include "ghead.h"
 #include <stdio.h>
-
+#include <boost/log/trivial.hpp>
 
 namespace galois
 {

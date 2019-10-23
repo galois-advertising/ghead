@@ -1,0 +1,9 @@
+#include "ghead.h"
+
+
+
+
+int main()
+{
+    return 0;
+}
