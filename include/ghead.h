@@ -21,17 +21,17 @@ enum GHEAD_FLAGS_T {
 };
 
 enum RETURN_CODE {
-    SUCCESS = 0,
-    EPARAM = -1,
-    EBODYLEN = -2,
-    WRITE = -3,
-    READ = -4,
-    READHEAD = -5,
-    WRITEHEAD = -6,
-    PEARCLOSE = -7,
-    ETIMEDOUT = -8,
-    EMAGICNUM = -9,
-    UNKNOWN = -10
+    RET_SUCCESS = 0,
+    RET_EPARAM = -1,
+    RET_EBODYLEN = -2,
+    RET_WRITE = -3,
+    RET_READ = -4,
+    RET_READHEAD = -5,
+    RET_WRITEHEAD = -6,
+    RET_PEARCLOSE = -7,
+    RET_ETIMEDOUT = -8,
+    RET_EMAGICNUM = -9,
+    RET_UNKNOWN = -10
 };
 typedef int socket_t;
 enum LOG_LEVEL {
@@ -55,6 +55,7 @@ struct ghead
     unsigned int reserved3;
     unsigned int body_len;
 
+private:
     static const std::map<RETURN_CODE, std::string> return_code_to_string;
     static const unsigned int GHEAD_MAGICNUM;
     const std::string & return_code_to_string(RETURN_CODE);
@@ -62,10 +63,6 @@ struct ghead
     static RETURN_CODE read(socket_t sock, ghead * head, void * req, size_t req_size,
             void * buf, size_t buf_size, int timeout, unsigned flags);
     static ssize_t sync_read_n_tmo(socket_t fd, void * ptr1, size_t nbytes, int msecs);
-    static ssize_t read_n_tmo(socket_t fd, void * ptr, size_t nbytes, struct timeval * tv);
-    static int read_tmo(socket_t fd, struct timeval * tv);
-    static int timeval_2_ms(const struct timeval * ptv);
-    static void ms_2_timeval(const int msec, struct timeval * ptv);
     static int poll_wrap(struct pollfd * fdarray, unsigned int nfds, int timeout);
 };
 }

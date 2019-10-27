@@ -60,145 +60,66 @@ RETURN_CODE ghead::read(int sock, ghead * head, void *req, size_t req_size,
 
     if (sock < 0 || !head)
         return EPARAM;
-
     int rlen = sync_read_n_tmo(sock, head, sizeof(ghead), timeout);
-
-    if (rlen <= 0)
+    if (rlen <= 0) {
         goto ghead_read_fail;
-    else if (rlen != sizeof(ghead)) {
-        printf("<%u> ghead_read head fail: ret %d want %u ERR[%m]",
+    } else if (rlen != sizeof(ghead)) {
+        log(WARNING, "<%u> ghead_read head fail: ret %d want %u ERR[%m]",
                 head->log_id, rlen, (unsigned int)req_size);
-        return GHEAD_RET_READHEAD;
+        return RET_READHEAD;
     }
 
     if (head->magic_num != GHEAD_MAGICNUM) {
         log(ERROR, "<%u> ghead_read magic num mismatch: ret %x want %x",
                 head->log_id, head->magic_num, GHEAD_MAGICNUM);
-        return EMAGICNUM;
+        return RET_EMAGICNUM;
     }
 
-    /* 对 body 的长度进行检查, 过长和过短都不符合要求 */
     if (head->body_len < req_size || head->body_len - req_size > buf_size) {
-        printf("<%u> ghead_read body_len error: req_size=%u buf_size=%u body_len=%u",
+        log(WARNING, "<%u> ghead_read body_len error: req_size=%u buf_size=%u body_len=%u",
                 head->log_id, (unsigned int)req_size, (unsigned int)buf_size, head->body_len);
-        return GHEAD_RET_EBODYLEN;
+        return RET_EBODYLEN;
     }
 
-    /* Read Request */
     if (req_size > 0) {
         rlen = sync_read_n_tmo(sock, req, req_size, timeout);
-        if (rlen <= 0)
+        if (rlen <= 0) {
             goto ghead_read_fail;
+        }
         else if (rlen != (int)req_size) {
-            printf("<%u> ghead_read fail: ret %d want %u ERR[%m]",
+            log(WARNING, "<%u> ghead_read fail: ret %d want %u ERR[%m]",
                     head->log_id, rlen, (unsigned int)req_size);
-            return GHEAD_RET_READ;
+            return RET_READ;
         }
     }
 
-    /* Read Detail */
-    if (head->body_len - req_size > 0) {
+    if (head->body_len > req_size) {
         rlen = sync_read_n_tmo(sock, buf, head->body_len - req_size, timeout);
-        if (rlen <= 0)
+        if (rlen <= 0) {
             goto ghead_read_fail;
+        }
         else if (rlen != (int)(head->body_len - req_size)) {
             printf("<%u> ghead_read fail: ret %d want %d ERR[%m]",
                     head->log_id, rlen, int(head->body_len - req_size));
-            return GHEAD_RET_READ;
+            return RET_READ;
         }
     }
 
-    return GHEAD_RET_SUCCESS;
+    return RET_SUCCESS;
 
 ghead_read_fail:
-    if (rlen == 0)
-        return GHEAD_RET_PEARCLOSE;
-
-    printf("<%u> ghead_read fail: ret=%d ERR[%m]",head->log_id, rlen);
-    if (rlen == -1 && errno == ETIMEDOUT)
-        return GHEAD_RET_ETIMEDOUT;
-    else
-        return GHEAD_RET_READ;
-}
-
-ssize_t ghead::sync_read_n_tmo(int fd, void *ptr1, size_t nbytes, int msecs)
-{
-    if (ptr1 == nullptr || nbytes == 0)
-        return -1;
-    ssize_t nread;
-    size_t nleft = nbytes;
-    char * ptr = (char *) ptr1;
-    struct timeval tv;
-    struct timeval *tp;
-
-    if (msecs < 0) {
-        tp = nullptr;
+    if (rlen == 0) {
+        return RET_PEARCLOSE;
+    }
+    log(WARNING, "<%u> ghead_read fail: ret=%d ERR[%m]",head->log_id, rlen);
+    if (rlen == -1 && errno == ETIMEDOUT) {
+        return RET_ETIMEDOUT;
     } else {
-        ms_2_timeval(msecs, &tv);
-        tp = &tv;
-    }
-    while (nleft > 0) {
-      again:
-        nread = reado_tv(fd, ptr, nleft, tp);
-        if (nread < 0) {
-            if ((nread == -1) && (errno == EINTR)) {
-                goto again;
-            } else if (nread == -2) {
-                errno = ETIMEDOUT;
-                return -1;
-            } else if (nread == -3) {
-                errno = EIO;
-                return -1;
-            } else {
-                return -1;
-            }
-        } else if (nread == 0) {
-            break;
-        } else {
-            ptr += nread;
-            nleft -= nread;
-        }
-    }
-    return (ssize_t)(nbytes - nleft);
-}
-
-ssize_t ghead::reado_tv(int fd, void *ptr, size_t nbytes, struct timeval * tv)
-{
-    int err;
-    err = sreadable_tv(fd, tv);
-    if (err < 0) {
-        return -3;
-    } else if (err == 0) {
-        return -2;
-    } else {
-        return read(fd, ptr, nbytes);
+        return RET_READ;
     }
 }
 
-
-ssize_t ghead::readn(int fd, void *vptr, size_t n)
-{
-	size_t	nleft;
-	ssize_t	nread;
-	char	*ptr;
-	ptr = vptr;
-	nleft = n;
-	while (nleft > 0) {
-		if ((nread = read(fd, ptr, nleft)) < 0) {
-			if (errno == EINTR)
-				nread = 0;		/* and call read() again */
-			else
-				return(-1);
-		} else if (nread == 0)
-			break;				/* EOF */
-
-		nleft -= nread;
-		ptr += nread;
-	}
-	return(n - nleft);		/* return >= 0 */
-}
-
-ssize_t ghead::read_n_tmo(int fd, void * ptr, size_t nbytes, int timeout_ms)
+ssize_t ghead::sync_read_n_tmo(int fd, void * ptr, size_t nbytes, int timeout_ms)
 {
     if (ptr == nullptr || nbytes == 0)
       return 0;
@@ -206,13 +127,14 @@ ssize_t ghead::read_n_tmo(int fd, void * ptr, size_t nbytes, int timeout_ms)
     pfd.fd = fd;
     pfd.events = POLLIN;
     size_t nleft = nbytes;
+    auto start = std::chrono::system_clock::now();
     while(nleft > 0) {
-        int result = poll_wrap(&pfd, 1, timeout_ms);
-        if (result > 0) {
-            int nread = readn(fd, ptr, nleft);
+        int presult = poll_wrap(&pfd, 1, timeout_ms);
+        if (presult > 0) {
+            int nread = read(fd, ptr, nleft);
             if (nread < 0) {
                 if (errno == EINTR) {
-                    nread = 0;
+                    continue;
                 } else {
                     return -1;
                 }
@@ -221,9 +143,14 @@ ssize_t ghead::read_n_tmo(int fd, void * ptr, size_t nbytes, int timeout_ms)
             }
             ptr += nread;
             nleft -= nread;
+        } else if (presutl == 0) {
+            // timeout
+            return nbyte - nleft;
+        } else {
+            return -1;
         }
-
     }
+    return nbytes;
 }
 
 // A simple wrap function of linux poll
@@ -239,9 +166,9 @@ int ghead::poll_wrap(struct pollfd * fdarray,
         return -1;
     int ret_val = 0;
     auto start = system_clock::now();
-    auto rest_timeout = milliseconds(timeout); 
+    auto rest_timeout = milliseconds(timeout_ms); 
     while(true) {
-        ret_val = poll(fdarray, nfds, timeout);
+        ret_val = poll(fdarray, nfds, duration_cast<milliseconds>(rest_timeout).count());
         if (ret_val > 0) {
             return ret_val;
         } else if (ret_val == 0) {
@@ -263,21 +190,6 @@ int ghead::poll_wrap(struct pollfd * fdarray,
     }
     errno = ETIMEDOUT;
     return ret_val;
-}
-
-void ghead::ms_2_timeval(const int msec, struct timeval *ptv)
-{
-    if (ptv == nullptr) 
-        return;
-    ptv->tv_sec = msec / 1000;
-    ptv->tv_usec = (msec % 1000) * 1000;
-}
-
-int ghead::timeval_2_ms(const struct timeval * ptv)
-{
-    if ( ptv == nullptr )
-        return -1;
-    return ptv->tv_sec * 1000 + ptv->tv_usec / 1000;
 }
 
 }
