@@ -7,32 +7,13 @@ message(${PROJECT_SOURCE_DIR})
 message(${PROJECT_BINARY_DIR})
 set (VERSION_MAJOR 1)
 set (VERSION_MINOR 0)
-#configure_file (
-#  "${PROJECT_SOURCE_DIR}/common/config.h.in"
-#  "${PROJECT_BINARY_DIR}/common/config.h"
-#  )
-#set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
+configure_file (
+  "${PROJECT_SOURCE_DIR}/common/config.h.in"
+  "${PROJECT_SOURCE_DIR}/common/config.h"
+  )
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
 else()
 endif()
-
-find_package(Boost REQUIRED COMPONENTS log log_setup)
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-if(NOT Boost_FOUND)
-    message("Can not find Boost")
-endif()
-message(STATUS "Found Boost IncPath ${Boost_INCLUDE_DIRS}")
-message(STATUS "Found Boost LibPath ${Boost_LIBRARY_DIRS}")
-
-set(libs dl boost_atomic boost_chrono boost_date_time boost_filesystem
-boost_regex boost_thread boost_headers boost_log_setup boost_log)
-
-add_definitions(-DBOOST_SPIRIT_THREADSAFE)
-add_definitions(-DBOOST_ALL_DYN_LINK)
-
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
@@ -40,11 +21,34 @@ set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -std=c++2a -fno-str
 set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall -std=c++2a -fno-strict-aliasing -Wno-register")
 set(CMAKE_BUILD_TYPE "Release")
 
+#set(Boost_USE_STATIC_LIBS ON)
+#set(Boost_USE_MULTITHREADED ON)
+#set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost REQUIRED COMPONENTS log)
+if(NOT Boost_FOUND)
+    message("Can not find Boost")
+endif()
+message(STATUS "Found Boost IncPath ${Boost_INCLUDE_DIRS}")
+message(STATUS "Found Boost LibPath ${Boost_LIBRARY_DIRS}")
+message(STATUS "Found Boost LIBRARIES ${Boost_LIBRARIES}")
+
+
+add_definitions(-DBOOST_SPIRIT_THREADSAFE)
+add_definitions(-DBOOST_ALL_DYN_LINK)
+
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
+
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/")
 
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
 add_executable(ghead
 "${PROJECT_SOURCE_DIR}/src/ghead.cpp" 
-"${PROJECT_SOURCE_DIR}/main.cpp" 
+"${PROJECT_SOURCE_DIR}/test/main.cpp" 
 )
-target_link_libraries(ghead ${libs})
+target_link_libraries(ghead boost_log-mt ${GTEST_BOTH_LIBRARIES})
+add_test(NAME Test COMMAND ghead)
