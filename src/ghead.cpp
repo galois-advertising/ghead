@@ -100,7 +100,6 @@ ssize_t ghead::sync_read_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout
     pfd.fd = fd;
     pfd.events = POLLIN;
     size_t nleft = nbytes;
-    auto start = std::chrono::system_clock::now();
     while(nleft > 0) {
         int presult = poll_wrap(&pfd, 1, timeout_ms);
         if (presult > 0) {
