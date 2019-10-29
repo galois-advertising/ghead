@@ -42,6 +42,7 @@ RETURN_CODE ghead::read(int sock, ghead * head, size_t buflen, int timeout)
                 head->log_id, rlen, sizeof(ghead));
         return RET_READHEAD;
     }
+    log(TRACE, "<%u> read head succeed: body_len:[%u]", head->log_id, head->body_len);
 
     // check magic
     if (head->magic_num != GHEAD_MAGICNUM) {
@@ -49,6 +50,7 @@ RETURN_CODE ghead::read(int sock, ghead * head, size_t buflen, int timeout)
                 head->log_id, head->magic_num, GHEAD_MAGICNUM);
         return RET_EMAGICNUM;
     }
+    log(TRACE, "<%u> check magic succeed: magic:[%x]", head->log_id, head->magic_num);
 
     // check reqsize
     if (buflen < sizeof(ghead) + head->body_len) {
@@ -56,6 +58,9 @@ RETURN_CODE ghead::read(int sock, ghead * head, size_t buflen, int timeout)
                 head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
         return RET_EBODYLEN;
     }
+    log(TRACE, "<%u> check size succeed: bodylen[%u] buflen[%u][%u|%u]", 
+        head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
+
     // read body
     if (head->body_len > 0) {
         rlen = sync_read_n_tmo(sock, head->body, head->body_len, timeout);
