@@ -44,11 +44,13 @@ void read(uint8_t * buf)
 void query_thread(int fd)
 {
     std::cout<<"new thread -----------------"<<std::endl;
-    char buf[1024];
+    char buf[54];
     ghead * head = reinterpret_cast<ghead*>(buf);
-    ghead::read(fd, head, sizeof(buf), 10000);
-    buf[sizeof(ghead) + head->body_len] = 0;
-    std::cout<<head->body<<std::endl;
+    if (RET_SUCCESS == ghead::read(fd, head, sizeof(buf), 10000))
+    {
+        buf[sizeof(ghead) + head->body_len] = 0;
+        std::cout<<"Body:"<<head->body<<std::endl;
+    }
     std::cout<<"close fd   -----------------"<<std::endl;
     close(fd);
 }
