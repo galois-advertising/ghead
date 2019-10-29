@@ -43,12 +43,18 @@ link_directories(${Boost_LIBRARY_DIRS})
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/")
 
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(ghead
+add_executable(server
 "${PROJECT_SOURCE_DIR}/src/ghead.cpp" 
-"${PROJECT_SOURCE_DIR}/test/main.cpp" 
+"${PROJECT_SOURCE_DIR}/test/server.cpp" 
 )
-target_link_libraries(ghead boost_log-mt ${GTEST_BOTH_LIBRARIES})
-add_test(NAME Test COMMAND ghead)
+target_link_libraries(server boost_log-mt)
+execute_process(COMMAND cp "${PROJECT_SOURCE_DIR}/test/server_ghead.txt" "${PROJECT_BUILD_DIR}")
+
+add_executable(client
+"${PROJECT_SOURCE_DIR}/src/ghead.cpp" 
+"${PROJECT_SOURCE_DIR}/test/client.cpp" 
+)
+target_link_libraries(client boost_log-mt)
+
+execute_process(COMMAND cp "${PROJECT_SOURCE_DIR}/test/client_ghead.txt" "${PROJECT_BUILD_DIR}")
