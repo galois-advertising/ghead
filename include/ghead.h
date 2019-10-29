@@ -57,13 +57,13 @@ struct ghead
     unsigned int reserved2;
     unsigned int reserved3;
     unsigned int body_len;
+    unsigned char body[];
 
+    static RETURN_CODE read(int sock, ghead * head, size_t buflen, int timeout);
 private:
     static const unsigned int GHEAD_MAGICNUM;
     static void log(LOG_LEVEL loglevel, const char * fmt, ...);
     static int poll_wrap(pollfd * fdarray, nfds_t nfds, int timeout);
-    static RETURN_CODE read(socket_t sock, ghead * head, void * req, size_t req_size,
-            void * buf, size_t buf_size, int timeout, unsigned flags);
     static ssize_t sync_read_n_tmo(socket_t fd, uint8_t * ptr1, size_t nbytes, int msecs);
 };
 }

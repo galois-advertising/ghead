@@ -27,57 +27,47 @@ void ghead::log(LOG_LEVEL loglevel, const char * fmt, ...)
     };
 }
 
-RETURN_CODE ghead::read(int sock, ghead * head, void *req, size_t req_size,
-        void *buf, size_t buf_size, int timeout, unsigned flags)
+RETURN_CODE ghead::read(int sock, ghead * head, size_t buflen, int timeout)
 {
 
-    if (sock < 0 || !head)
+    if (sock < 0 || !head || buflen < sizeof(ghead))
         return RET_EPARAM;
+
+    // read head
     int rlen = sync_read_n_tmo(sock, reinterpret_cast<uint8_t*>(head), sizeof(ghead), timeout);
     if (rlen <= 0) {
         goto ghead_read_fail;
     } else if (rlen != sizeof(ghead)) {
-        log(WARNING, "<%u> ghead_read head fail: ret %d want %u ERR[%m]",
-                head->log_id, rlen, (unsigned int)req_size);
+        log(WARNING, "<%u> ghead_read head fail: ret[%d] want[%u]",
+                head->log_id, rlen, sizeof(ghead));
         return RET_READHEAD;
     }
 
+    // check magic
     if (head->magic_num != GHEAD_MAGICNUM) {
-        log(ERROR, "<%u> ghead_read magic num mismatch: ret %x want %x",
+        log(ERROR, "<%u> ghead_read magic num mismatch: ret[%x] want[%x]",
                 head->log_id, head->magic_num, GHEAD_MAGICNUM);
         return RET_EMAGICNUM;
     }
 
-    if (head->body_len < req_size || head->body_len - req_size > buf_size) {
-        log(WARNING, "<%u> ghead_read body_len error: req_size=%u buf_size=%u body_len=%u",
-                head->log_id, (unsigned int)req_size, (unsigned int)buf_size, head->body_len);
+    // check reqsize
+    if (buflen < sizeof(ghead) + head->body_len) {
+        log(WARNING, "<%u> ghead_read body_len error: bodylen[%u] buflen[%u][%u|%u]",
+                head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
         return RET_EBODYLEN;
     }
-
-    if (req_size > 0) {
-        rlen = sync_read_n_tmo(sock, static_cast<uint8_t*>(req), req_size, timeout);
+    // read body
+    if (head->body_len > 0) {
+        rlen = sync_read_n_tmo(sock, head->body, head->body_len, timeout);
         if (rlen <= 0) {
             goto ghead_read_fail;
         }
-        else if (rlen != (int)req_size) {
-            log(WARNING, "<%u> ghead_read fail: ret %d want %u ERR[%m]",
-                    head->log_id, rlen, (unsigned int)req_size);
+        else if (rlen != (int)head->body_len) {
+            log(WARNING, "<%u> ghead_read body fail: ret[%d] want[%u]",
+                    head->log_id, rlen, rlen, head->body_len);
             return RET_READ;
         }
     }
-
-    if (head->body_len > req_size) {
-        rlen = sync_read_n_tmo(sock, static_cast<uint8_t*>(buf), head->body_len - req_size, timeout);
-        if (rlen <= 0) {
-            goto ghead_read_fail;
-        }
-        else if (rlen != (int)(head->body_len - req_size)) {
-            printf("<%u> ghead_read fail: ret %d want %d ERR[%m]",
-                    head->log_id, rlen, int(head->body_len - req_size));
-            return RET_READ;
-        }
-    }
-
     return RET_SUCCESS;
 
 ghead_read_fail:
