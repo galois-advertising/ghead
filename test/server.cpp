@@ -50,26 +50,40 @@ void query_thread(int fd)
     {
         buf[sizeof(ghead) + head->body_len] = 0;
         std::cout<<"Body:"<<head->body<<std::endl;
-        size_t response_len = sizeof(ghead) + 
-            strlen(reinterpret_cast<const char *>(head->body)) + 2;
-        unsigned char * response = new unsigned char[response_len];
+        size_t request_body_len = strlen(reinterpret_cast<const char *>(head->body));
+        std::cout<<"request_body_len:"<<request_body_len<<std::endl;
+        size_t response_len = sizeof(ghead) + request_body_len + 2;
+        unsigned char * response = new unsigned char[response_len + 1];
+        memset(response, 0, response_len + 1);
         ghead * p = reinterpret_cast<ghead*>(response);
-        p->body_len = strlen(reinterpret_cast<const char *>(head->body)) + 2;
+        p->body_len = request_body_len + 2;
         p->body[0] = '[';
-        p->body[strlen(reinterpret_cast<const char *>(head->body)) + 2 - 1] = ']';
-        strcpy(reinterpret_cast<char *>(&p->body[1]), 
-            reinterpret_cast<const char *>(head->body));
+        p->body[request_body_len + 2 - 1] = ']';
+        //strncpy(reinterpret_cast<char *>(&p->body[1]), 
+        //    reinterpret_cast<const char *>(head->body), request_body_len);
+        //strcpy(reinterpret_cast<char *>(&p->body[1]), 
+        //    reinterpret_cast<const char *>(head->body) );
+        const char * body = reinterpret_cast<const char *>(&head->body); 
         ghead::gwrite(fd, p, response_len, 10000);
+        std::cout<<p->body<<std::endl;
         delete [] response;
     }
     std::cout<<"close fd   -----------------"<<std::endl;
     close(fd);
 }
 
+int listenfd;
+void on_sigterm(int arg)
+{
+    (void) arg;
+    close(listenfd);
+}
+
 int main(int argc, char * argv[])
 {
-    
-    int listenfd, connfd;
+    signal(SIGPIPE, SIG_IGN); 
+    signal(SIGTERM, on_sigterm);
+    int connfd;
     socklen_t clilen;
     struct sockaddr_in cliaddr, servaddr;
     listenfd = socket(AF_INET, SOCK_STREAM, 0);

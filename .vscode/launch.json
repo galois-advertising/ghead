@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) ghead", // 项目名字
+            "name": "(lldb) server", // 项目名字
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build/ghead",
+            "program": "${workspaceRoot}/build/server",
             "args": [""],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
