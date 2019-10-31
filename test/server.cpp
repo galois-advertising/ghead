@@ -81,11 +81,7 @@ void query_thread(int fd)
 
 int main(int argc, char * argv[])
 {
-<<<<<<< HEAD
-    
-=======
     signal(SIGPIPE, SIG_IGN); 
->>>>>>> develop
     int listenfd, connfd;
     socklen_t clilen;
     struct sockaddr_in cliaddr, servaddr;

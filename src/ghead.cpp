@@ -127,23 +127,12 @@ ssize_t ghead::sync_read_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout
                     return -1;
                 }
             } else if (nread == 0) {
-<<<<<<< HEAD
-                log(TRACE, "[galois head] connection invalid read return [0]");
-=======
                 log(TRACE, "[galois head] read connection invalid read return [0]");
->>>>>>> develop
                 break;
             }
             ptr += nread;
             nleft -= nread;
             log(TRACE, "[galois head] read[%u] left[%u]", nread, nleft);
-<<<<<<< HEAD
-        } else if (presult == 0) {
-            log(TRACE, "[galois head] poll timeout.");
-            break;
-        } else {
-            log(WARNING, "[galois head] poll fail.");
-=======
         } else if (presult == 0) {
             log(TRACE, "[galois head] read poll timeout.");
             break;
@@ -253,7 +242,6 @@ ssize_t ghead::sync_write_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeou
             break;
         } else {
             log(WARNING, "[galois head] write poll fail.");
->>>>>>> develop
             return -1;
         }
     }
