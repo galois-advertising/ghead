@@ -46,12 +46,6 @@ void query_thread(int fd)
     std::cout<<"new thread -----------------"<<std::endl;
     char buf[54];
     ghead * head = reinterpret_cast<ghead*>(buf);
-<<<<<<< HEAD
-    if (RET_SUCCESS == ghead::read(fd, head, sizeof(buf), 10000))
-    {
-        buf[sizeof(ghead) + head->body_len] = 0;
-        std::cout<<"Body:"<<head->body<<std::endl;
-=======
     if (RET_SUCCESS == ghead::gread(fd, head, sizeof(buf), 10000))
     {
         buf[sizeof(ghead) + head->body_len] = 0;
@@ -73,7 +67,6 @@ void query_thread(int fd)
         ghead::gwrite(fd, p, response_len, 10000);
         std::cout<<p->body<<std::endl;
         delete [] response;
->>>>>>> develop
     }
     std::cout<<"close fd   -----------------"<<std::endl;
     close(fd);
@@ -97,10 +90,7 @@ int main(int argc, char * argv[])
     listen(listenfd, 5);
     while(true) {
         clilen = sizeof(cliaddr);
-<<<<<<< HEAD
-=======
         std::cout<<"accept..."<<std::endl;
->>>>>>> develop
         if ( (connfd = accept(listenfd, (struct sockaddr*) &cliaddr, &clilen)) < 0) {
             if (errno == EINTR)
                 continue;        /* back to for() */
@@ -110,10 +100,7 @@ int main(int argc, char * argv[])
             std::thread(query_thread, connfd).detach();
         }
     }
-<<<<<<< HEAD
-=======
     //std::cout<<"should not be here"<<std::endl;
->>>>>>> develop
     close(listenfd);
     return 0;
 }
