@@ -60,19 +60,19 @@ int main(int argc, char * argv[])
     write(sockfd, buf, sizeof(ghead));
     for (int i = 0; i < 10; i++) {
         //char ch = getchar();
-        char ch = 'c';
-        write(sockfd, &ch, 1);
+        //char ch = 'c';
+        //write(sockfd, &ch, 1);
+        write(sockfd, "cccccccccc", 10);
     };
-    std::cout<<"out"<<std::endl;
-    char receive[1024];
-    ghead * p = reinterpret_cast<ghead*>(receive);
-    auto res = ghead::gread(sockfd, reinterpret_cast<ghead*>(receive), sizeof(1024), 10000);
-    std::cout<<res<<std::endl;
-    if (res > 0) {
-        receive[sizeof(ghead) + p->body_len] = 0;
-        std::cout<<p->body<<std::endl;
-    }
-
+    //std::cout<<"out"<<std::endl;
+    //char receive[1024];
+    //ghead * p = reinterpret_cast<ghead*>(receive);
+    //auto res = ghead::gread(sockfd, reinterpret_cast<ghead*>(receive), sizeof(1024), 10000);
+    //std::cout<<res<<std::endl;
+    //if (res > 0) {
+    //    receive[sizeof(ghead) + p->body_len] = 0;
+    //    std::cout<<p->body<<std::endl;
+    //}
     close(sockfd);
     return 0;
 }
