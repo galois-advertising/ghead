@@ -46,10 +46,34 @@ void query_thread(int fd)
     std::cout<<"new thread -----------------"<<std::endl;
     char buf[54];
     ghead * head = reinterpret_cast<ghead*>(buf);
+<<<<<<< HEAD
     if (RET_SUCCESS == ghead::read(fd, head, sizeof(buf), 10000))
     {
         buf[sizeof(ghead) + head->body_len] = 0;
         std::cout<<"Body:"<<head->body<<std::endl;
+=======
+    if (RET_SUCCESS == ghead::gread(fd, head, sizeof(buf), 10000))
+    {
+        buf[sizeof(ghead) + head->body_len] = 0;
+        std::cout<<"Body:"<<head->body<<std::endl;
+        size_t request_body_len = strlen(reinterpret_cast<const char *>(head->body));
+        std::cout<<"request_body_len:"<<request_body_len<<std::endl;
+        size_t response_len = sizeof(ghead) + request_body_len + 2;
+        unsigned char * response = new unsigned char[response_len + 1];
+        memset(response, 0, response_len + 1);
+        ghead * p = reinterpret_cast<ghead*>(response);
+        p->body_len = request_body_len + 2;
+        p->body[0] = '[';
+        p->body[request_body_len + 2 - 1] = ']';
+        //strncpy(reinterpret_cast<char *>(&p->body[1]), 
+        //    reinterpret_cast<const char *>(head->body), request_body_len);
+        //strcpy(reinterpret_cast<char *>(&p->body[1]), 
+        //    reinterpret_cast<const char *>(head->body) );
+        const char * body = reinterpret_cast<const char *>(&head->body); 
+        ghead::gwrite(fd, p, response_len, 10000);
+        std::cout<<p->body<<std::endl;
+        delete [] response;
+>>>>>>> develop
     }
     std::cout<<"close fd   -----------------"<<std::endl;
     close(fd);
@@ -57,7 +81,11 @@ void query_thread(int fd)
 
 int main(int argc, char * argv[])
 {
+<<<<<<< HEAD
     
+=======
+    signal(SIGPIPE, SIG_IGN); 
+>>>>>>> develop
     int listenfd, connfd;
     socklen_t clilen;
     struct sockaddr_in cliaddr, servaddr;
@@ -73,6 +101,10 @@ int main(int argc, char * argv[])
     listen(listenfd, 5);
     while(true) {
         clilen = sizeof(cliaddr);
+<<<<<<< HEAD
+=======
+        std::cout<<"accept..."<<std::endl;
+>>>>>>> develop
         if ( (connfd = accept(listenfd, (struct sockaddr*) &cliaddr, &clilen)) < 0) {
             if (errno == EINTR)
                 continue;        /* back to for() */
@@ -82,6 +114,10 @@ int main(int argc, char * argv[])
             std::thread(query_thread, connfd).detach();
         }
     }
+<<<<<<< HEAD
+=======
+    //std::cout<<"should not be here"<<std::endl;
+>>>>>>> develop
     close(listenfd);
     return 0;
 }

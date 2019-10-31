@@ -58,10 +58,28 @@ int main(int argc, char * argv[])
     inet_pton(AF_INET, "127.0.0.1", &servaddr.sin_addr);
     connect(sockfd, (struct sockaddr*) &servaddr, sizeof(servaddr));
     write(sockfd, buf, sizeof(ghead));
+<<<<<<< HEAD
     while(true) {
         char ch = getchar();
         write(sockfd, &ch, 1);
     }
+=======
+    for (int i = 0; i < 10; i++) {
+        //char ch = getchar();
+        //char ch = 'c';
+        //write(sockfd, &ch, 1);
+        write(sockfd, "cccccccccc", 10);
+    };
+    //std::cout<<"out"<<std::endl;
+    //char receive[1024];
+    //ghead * p = reinterpret_cast<ghead*>(receive);
+    //auto res = ghead::gread(sockfd, reinterpret_cast<ghead*>(receive), sizeof(1024), 10000);
+    //std::cout<<res<<std::endl;
+    //if (res > 0) {
+    //    receive[sizeof(ghead) + p->body_len] = 0;
+    //    std::cout<<p->body<<std::endl;
+    //}
+>>>>>>> develop
     close(sockfd);
     return 0;
 }
