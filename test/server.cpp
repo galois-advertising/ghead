@@ -50,6 +50,17 @@ void query_thread(int fd)
     {
         buf[sizeof(ghead) + head->body_len] = 0;
         std::cout<<"Body:"<<head->body<<std::endl;
+        size_t response_len = sizeof(ghead) + 
+            strlen(reinterpret_cast<const char *>(head->body)) + 2;
+        unsigned char * response = new unsigned char[response_len];
+        ghead * p = reinterpret_cast<ghead*>(response);
+        p->body_len = strlen(reinterpret_cast<const char *>(head->body)) + 2;
+        p->body[0] = '[';
+        p->body[strlen(reinterpret_cast<const char *>(head->body)) + 2 - 1] = ']';
+        strcpy(reinterpret_cast<char *>(&p->body[1]), 
+            reinterpret_cast<const char *>(head->body));
+        ghead::gwrite(fd, p, response_len, 10000);
+        delete [] response;
     }
     std::cout<<"close fd   -----------------"<<std::endl;
     close(fd);
