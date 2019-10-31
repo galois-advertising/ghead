@@ -28,19 +28,12 @@ void ghead::log(LOG_LEVEL loglevel, const char * fmt, ...)
     };
 }
 
-<<<<<<< HEAD
-RETURN_CODE ghead::read(int sock, ghead * head, size_t buflen, int timeout)
-{
-    if (sock < 0 || !head || buflen < sizeof(ghead))
-        return RET_EPARAM;
-=======
 RETURN_CODE ghead::gread(int sock, ghead * head, size_t buflen, int timeout)
 {
     if (sock < 0 || !head || buflen < sizeof(ghead)) {
         log(WARNING, "<%u>[galois head] param error.");
         return RET_EPARAM;
     }
->>>>>>> develop
     // read head
     int rlen = 0;
     rlen = sync_read_n_tmo(sock, reinterpret_cast<uint8_t*>(head), sizeof(ghead), timeout);
@@ -107,15 +100,9 @@ ssize_t ghead::sync_read_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout
     pfd.events = POLLIN;
     size_t nleft = nbytes;
     while(nleft > 0) {
-<<<<<<< HEAD
-        log(TRACE, "[galois head] waiting for poll ready.");
-        int presult = poll_wrap(&pfd, 1, timeout_ms);
-        log(TRACE, "[galois head] poll ready.");
-=======
         log(TRACE, "[galois head] waiting for read poll ready.");
         int presult = poll_wrap(&pfd, 1, timeout_ms);
         log(TRACE, "[galois head] read poll ready.");
->>>>>>> develop
         if (presult > 0) {
             int nread = ::read(fd, ptr, nleft);
             if (nread < 0) {
