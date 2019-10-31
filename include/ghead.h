@@ -59,7 +59,11 @@ struct ghead
     unsigned int body_len;
     unsigned char body[];
 
+<<<<<<< HEAD
     static RETURN_CODE gread(int sock, ghead * head, size_t buflen, int timeout);
+=======
+    static RETURN_CODE rread(int sock, ghead * head, size_t buflen, int timeout);
+>>>>>>> e15e451f0ae3c995ab733e5a1a73da5a69f5a4f8
     static RETURN_CODE gwrite(int sock, ghead * head, size_t buflen, int timeout);
 private:
     static const unsigned int GHEAD_MAGICNUM;
