@@ -2,10 +2,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(lldb) server", // 项目名字
+            "name": "server", 
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build/server",
+            "args": [""],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "client", 
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/build/client",
             "args": [""],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
