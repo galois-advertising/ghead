@@ -59,10 +59,8 @@ void query_thread(int fd)
         p->body_len = request_body_len + 2;
         p->body[0] = '[';
         p->body[request_body_len + 2 - 1] = ']';
-        //strncpy(reinterpret_cast<char *>(&p->body[1]), 
-        //    reinterpret_cast<const char *>(head->body), request_body_len);
-        //strcpy(reinterpret_cast<char *>(&p->body[1]), 
-        //    reinterpret_cast<const char *>(head->body) );
+        strncpy(reinterpret_cast<char *>(&p->body[1]), 
+            reinterpret_cast<const char *>(head->body), request_body_len);
         const char * body = reinterpret_cast<const char *>(&head->body); 
         ghead::gwrite(fd, p, response_len, 10000);
         std::cout<<p->body<<std::endl;
@@ -72,10 +70,18 @@ void query_thread(int fd)
     close(fd);
 }
 
+int listenfd;
+void on_sigterm(int arg)
+{
+    (void) arg;
+    close(listenfd);
+}
+
 int main(int argc, char * argv[])
 {
     signal(SIGPIPE, SIG_IGN); 
-    int listenfd, connfd;
+    signal(SIGTERM, on_sigterm);
+    int connfd;
     socklen_t clilen;
     struct sockaddr_in cliaddr, servaddr;
     listenfd = socket(AF_INET, SOCK_STREAM, 0);

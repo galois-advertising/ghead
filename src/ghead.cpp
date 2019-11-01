@@ -80,8 +80,8 @@ ghead_read_fail:
     if (rlen == 0) {
         return RET_PEARCLOSE;
     }
-    log(WARNING, "<%u>[galois head] read fail: ret=%d",
-        head->log_id, rlen);
+    log(WARNING, "<%u>[galois head] read fail: ret[%d] errno:[%d|%s]",
+        head->log_id, rlen, errno, strerror(errno));
     if (rlen == -1 && errno == ETIMEDOUT) {
         return RET_ETIMEDOUT;
     } else {
@@ -110,7 +110,8 @@ ssize_t ghead::sync_read_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout
                     log(TRACE, "[galois head] read interrupt by EINTR.");
                     continue;
                 } else {
-                    log(TRACE, "[galois head] read fail return[%d] errno[%d]", nread, errno);
+                    log(TRACE, "[galois head] read fail return[%d] errno[%d|%s]", 
+                        nread, errno, strerror(errno));
                     return -1;
                 }
             } else if (nread == 0) {
@@ -164,8 +165,8 @@ RETURN_CODE ghead::gwrite(int sock, ghead * head, size_t buflen, int timeout)
         if (rlen <= 0) {
             goto ghead_write_fail;
         } else if (rlen != (int)head->body_len) {
-            log(WARNING, "<%u>[galois head] write body incomplete: write[%d] want[%u] errno[%d]",
-                    head->log_id, rlen, head->body_len, errno);
+            log(WARNING, "<%u>[galois head] write body incomplete: write[%d] want[%u] errno[%d|%s]",
+                    head->log_id, rlen, head->body_len, errno, strerror(errno));
             return RET_WRITE;
         }
     }
@@ -175,8 +176,8 @@ ghead_write_fail:
     if (rlen == 0) {
         return RET_PEARCLOSE;
     }
-    log(WARNING, "<%u>[galois head] write fail: ret[%d] errno[%d]",
-        head->log_id, rlen, errno);
+    log(WARNING, "<%u>[galois head] write fail: ret[%d] errno[%d|%s]",
+        head->log_id, rlen, errno, strerror(errno));
     if (rlen == -1 && errno == ETIMEDOUT) {
         return RET_ETIMEDOUT;
     } else {
@@ -214,7 +215,8 @@ ssize_t ghead::sync_write_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeou
                     log(TRACE, "[galois head] write interrupt by EINTR.");
                     continue;
                 } else {
-                    log(TRACE, "[galois head] write fail return[%d] errno[%d]", nwrite, errno);
+                    log(TRACE, "[galois head] write fail return[%d] errno[%d|%s]", 
+                        nwrite, errno, strerror(errno));
                     return -1;
                 }
             } else if (nwrite == 0) {
