@@ -59,10 +59,8 @@ void query_thread(int fd)
         p->body_len = request_body_len + 2;
         p->body[0] = '[';
         p->body[request_body_len + 2 - 1] = ']';
-        //strncpy(reinterpret_cast<char *>(&p->body[1]), 
-        //    reinterpret_cast<const char *>(head->body), request_body_len);
-        //strcpy(reinterpret_cast<char *>(&p->body[1]), 
-        //    reinterpret_cast<const char *>(head->body) );
+        strncpy(reinterpret_cast<char *>(&p->body[1]), 
+            reinterpret_cast<const char *>(head->body), request_body_len);
         const char * body = reinterpret_cast<const char *>(&head->body); 
         ghead::gwrite(fd, p, response_len, 10000);
         std::cout<<p->body<<std::endl;
