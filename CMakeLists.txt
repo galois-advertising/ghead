@@ -43,6 +43,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/")
 
+ADD_LIBRARY(ghead STATIC ${PROJECT_SOURCE_DIR}/src/ghead.cpp)
 
 add_executable(server
 "${PROJECT_SOURCE_DIR}/src/ghead.cpp" 
