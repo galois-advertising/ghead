@@ -37,14 +37,6 @@ enum RETURN_CODE {
     RET_UNKNOWN = -10
 };
 typedef int socket_t;
-enum LOG_LEVEL {
-    FATAL,
-    ERROR,
-    WARNING,
-    INFO,
-    DEBUG,
-    TRACE
-};
 struct ghead 
 {
     // No virtual, No 'this' pointer, all static except
@@ -63,7 +55,6 @@ struct ghead
     static RETURN_CODE gwrite(int sock, ghead * head, size_t buflen, int timeout);
 private:
     static const unsigned int GHEAD_MAGICNUM;
-    static void log(LOG_LEVEL loglevel, const char * fmt, ...);
     static ssize_t sync_read_n_tmo(socket_t fd, uint8_t * ptr1, size_t nbytes, int msecs);
     static ssize_t sync_write_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout_ms);
     static int poll_wrap(pollfd * fdarray, nfds_t nfds, int timeout);
