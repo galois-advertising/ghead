@@ -41,11 +41,11 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
-include_directories("${PROJECT_SOURCE_DIR}/common/util/include")
+include_directories("${CMAKE_SOURCE_DIR}/common/util/include")
 include_directories("${PROJECT_SOURCE_DIR}/")
 
 
-add_subdirectory(common/util)
+add_subdirectory(${CMAKE_SOURCE_DIR}/common/util)
 
 ADD_LIBRARY(ghead STATIC ${PROJECT_SOURCE_DIR}/src/ghead.cpp)
 
