@@ -48,7 +48,6 @@ include_directories("${PROJECT_SOURCE_DIR}/")
 add_subdirectory(common/util)
 
 ADD_LIBRARY(ghead STATIC ${PROJECT_SOURCE_DIR}/src/ghead.cpp)
-target_link_libraries(ghead common)
 
 add_executable(server
 "${PROJECT_SOURCE_DIR}/test/server.cpp" 
