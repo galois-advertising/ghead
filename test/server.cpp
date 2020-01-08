@@ -25,7 +25,7 @@ using namespace galois::ghead;
 
 void read(uint8_t * buf)
 {
-    std::ifstream  afile;
+    std::fstream  afile;
     afile.open("./server_ghead.txt", std::ios::in);
     if (afile.is_open() == false) {
         std::cout<<"Cannot find ./client_ghead.txt"<<std::endl;
