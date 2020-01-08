@@ -15,7 +15,7 @@ const unsigned int ghead::GHEAD_MAGICNUM = 0xe8c4a59;
 RETURN_CODE ghead::gread(int sock, ghead * head, size_t buflen, int timeout)
 {
     if (sock < 0 || !head || buflen < sizeof(ghead)) {
-        log(LOG_LEVEL::WARNING, "<%u>[galois head] param error.");
+        WARNING("[galois head] param error.", "");
         return RET_EPARAM;
     }
     // read head
@@ -24,27 +24,27 @@ RETURN_CODE ghead::gread(int sock, ghead * head, size_t buflen, int timeout)
     if (rlen <= 0) {
         goto ghead_read_fail;
     } else if (rlen != sizeof(ghead)) {
-        log(LOG_LEVEL::WARNING, "<%u>[galois head] read head incomplete: receive[%d] want[%u]",
+        WARNING("<%u>[galois head] read head incomplete: receive[%d] want[%u]",
                 head->log_id, rlen, sizeof(ghead));
         return RET_READHEAD;
     }
-    log(LOG_LEVEL::TRACE, "<%u>[galois head] read head succeed: body_len:[%u]", head->log_id, head->body_len);
+    TRACE("<%u>[galois head] read head succeed: body_len:[%u]", head->log_id, head->body_len);
 
     // check magic
     if (head->magic_num != GHEAD_MAGICNUM) {
-        log(LOG_LEVEL::ERROR, "<%u>[galois head] magic num mismatch: receive[%x] want[%x]",
+        ERROR("<%u>[galois head] magic num mismatch: receive[%x] want[%x]",
                 head->log_id, head->magic_num, GHEAD_MAGICNUM);
         return RET_EMAGICNUM;
     }
-    log(LOG_LEVEL::TRACE, "<%u>[galois head] check magic succeed: magic:[%x]", head->log_id, head->magic_num);
+    TRACE("<%u>[galois head] check magic succeed: magic:[%x]", head->log_id, head->magic_num);
 
     // check reqsize
     if (buflen < sizeof(ghead) + head->body_len) {
-        log(LOG_LEVEL::WARNING, "<%u>[galois head] buffer too small: bodylen[%u] buflen[%u(%u|%u)]",
+        WARNING("<%u>[galois head] buffer too small: bodylen[%u] buflen[%u(%u|%u)]",
             head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
         return RET_EBODYLEN;
     }
-    log(LOG_LEVEL::TRACE, "<%u>[galois head] check size succeed: bodylen[%u] buflen[%u][%u|%u]", 
+    TRACE("<%u>[galois head] check size succeed: bodylen[%u] buflen[%u][%u|%u]", 
         head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
 
     // read body
@@ -53,7 +53,7 @@ RETURN_CODE ghead::gread(int sock, ghead * head, size_t buflen, int timeout)
         if (rlen <= 0) {
             goto ghead_read_fail;
         } else if (rlen != (int)head->body_len) {
-            log(LOG_LEVEL::WARNING, "<%u>[galois head] read body incomplete: receive[%d] want[%u]",
+            WARNING("<%u>[galois head] read body incomplete: receive[%d] want[%u]",
                     head->log_id, rlen, head->body_len);
             return RET_READ;
         }
@@ -64,7 +64,7 @@ ghead_read_fail:
     if (rlen == 0) {
         return RET_PEARCLOSE;
     }
-    log(LOG_LEVEL::WARNING, "<%u>[galois head] read fail: ret[%d] errno:[%d|%s]",
+    WARNING("<%u>[galois head] read fail: ret[%d] errno:[%d|%s]",
         head->log_id, rlen, errno, strerror(errno));
     if (rlen == -1 && errno == ETIMEDOUT) {
         return RET_ETIMEDOUT;
@@ -76,7 +76,7 @@ ghead_read_fail:
 ssize_t ghead::sync_read_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout_ms)
 {
     if (ptr == nullptr || nbytes == 0) {
-        log(LOG_LEVEL::TRACE, "[galois head] param error.");
+        TRACE("[galois head] param error.", "");
         return -1;
     }
     struct pollfd pfd;
@@ -84,32 +84,32 @@ ssize_t ghead::sync_read_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout
     pfd.events = POLLIN;
     size_t nleft = nbytes;
     while(nleft > 0) {
-        log(LOG_LEVEL::TRACE, "[galois head] waiting for read poll ready.");
+        TRACE("[galois head] waiting for read poll ready.", "");
         int presult = poll_wrap(&pfd, 1, timeout_ms);
-        log(LOG_LEVEL::TRACE, "[galois head] read poll ready.");
+        TRACE("[galois head] read poll ready.", "");
         if (presult > 0) {
             int nread = ::read(fd, ptr, nleft);
             if (nread < 0) {
                 if (errno == EINTR) {
-                    log(LOG_LEVEL::TRACE, "[galois head] read interrupt by EINTR.");
+                    TRACE("[galois head] read interrupt by EINTR.", "");
                     continue;
                 } else {
-                    log(LOG_LEVEL::TRACE, "[galois head] read fail return[%d] errno[%d|%s]", 
+                    TRACE("[galois head] read fail return[%d] errno[%d|%s]", 
                         nread, errno, strerror(errno));
                     return -1;
                 }
             } else if (nread == 0) {
-                log(LOG_LEVEL::TRACE, "[galois head] read connection invalid read return [0]");
+                TRACE("[galois head] read connection invalid read return [0]", "");
                 break;
             }
             ptr += nread;
             nleft -= nread;
-            log(LOG_LEVEL::TRACE, "[galois head] read[%u] left[%u]", nread, nleft);
+            TRACE("[galois head] read[%u] left[%u]", nread, nleft);
         } else if (presult == 0) {
-            log(LOG_LEVEL::TRACE, "[galois head] read poll timeout.");
+            TRACE("[galois head] read poll timeout.", "");
             break;
         } else {
-            log(LOG_LEVEL::WARNING, "[galois head] read poll fail.");
+            WARNING("[galois head] read poll fail.", "");
             return -1;
         }
     }
@@ -127,20 +127,20 @@ RETURN_CODE ghead::gwrite(int sock, ghead * head, size_t buflen, int timeout)
     if (rlen <= 0) {
         goto ghead_write_fail;
     } else if (rlen != sizeof(ghead)) {
-        log(LOG_LEVEL::WARNING, "<%u>[galois head] write head incomplete: write[%d] want[%u]",
+        WARNING("<%u>[galois head] write head incomplete: write[%d] want[%u]",
                 head->log_id, rlen, sizeof(ghead));
         return RET_WRITEHEAD;
     }
-    log(LOG_LEVEL::TRACE, "<%u>[galois head] write head succeed: body_len:[%u] magic:[%x]", 
+    TRACE("<%u>[galois head] write head succeed: body_len:[%u] magic:[%x]", 
         head->log_id, head->body_len, head->magic_num);
 
     // check reqsize
     if (buflen < sizeof(ghead) + head->body_len) {
-        log(LOG_LEVEL::WARNING, "<%u>[galois head] buffer too small: bodylen[%u] buflen[%u(%u|%u)]",
+        WARNING("<%u>[galois head] buffer too small: bodylen[%u] buflen[%u(%u|%u)]",
             head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
         return RET_EBODYLEN;
     }
-    log(LOG_LEVEL::TRACE, "<%u>[galois head] check size succeed: bodylen[%u] buflen[%u][%u|%u]", 
+    TRACE("<%u>[galois head] check size succeed: bodylen[%u] buflen[%u][%u|%u]", 
         head->log_id, head->body_len, buflen - sizeof(ghead), buflen, sizeof(ghead));
 
     // read body
@@ -149,7 +149,7 @@ RETURN_CODE ghead::gwrite(int sock, ghead * head, size_t buflen, int timeout)
         if (rlen <= 0) {
             goto ghead_write_fail;
         } else if (rlen != (int)head->body_len) {
-            log(LOG_LEVEL::WARNING, "<%u>[galois head] write body incomplete: write[%d] want[%u] errno[%d|%s]",
+            WARNING("<%u>[galois head] write body incomplete: write[%d] want[%u] errno[%d|%s]",
                     head->log_id, rlen, head->body_len, errno, strerror(errno));
             return RET_WRITE;
         }
@@ -160,7 +160,7 @@ ghead_write_fail:
     if (rlen == 0) {
         return RET_PEARCLOSE;
     }
-    log(LOG_LEVEL::WARNING, "<%u>[galois head] write fail: ret[%d] errno[%d|%s]",
+    WARNING("<%u>[galois head] write fail: ret[%d] errno[%d|%s]",
         head->log_id, rlen, errno, strerror(errno));
     if (rlen == -1 && errno == ETIMEDOUT) {
         return RET_ETIMEDOUT;
@@ -173,7 +173,7 @@ ghead_write_fail:
 ssize_t ghead::sync_write_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeout_ms)
 {
     if (ptr == nullptr || nbytes == 0) {
-        log(LOG_LEVEL::TRACE, "[galois head] param error.");
+        TRACE("[galois head] param error.", "");
         return -1;
     }
     struct pollfd pfd;
@@ -181,40 +181,40 @@ ssize_t ghead::sync_write_n_tmo(int fd, uint8_t * ptr, size_t nbytes, int timeou
     pfd.events = POLLOUT;
     size_t nleft = nbytes;
     while(nleft > 0) {
-        log(LOG_LEVEL::TRACE, "[galois head] waiting for write poll ready.");
+        TRACE("[galois head] waiting for write poll ready.", "");
         if (!set_sock_noblock(fd)) {
-            log(LOG_LEVEL::TRACE, "[galois head] write set_sock_noblock fail.");
+            TRACE("[galois head] write set_sock_noblock fail.", "");
             return -1;
         }
         int presult = poll_wrap(&pfd, 1, timeout_ms);
-        log(LOG_LEVEL::TRACE, "[galois head] write poll ready.");
+        TRACE("[galois head] write poll ready.", "");
         if (presult > 0) {
             if (!set_sock_noblock(fd)) {
-                log(LOG_LEVEL::TRACE, "[galois head] write set_sock_noblock fail.");
+                TRACE("[galois head] write set_sock_noblock fail.", "");
                 return -1;
             }
             int nwrite = ::write(fd, ptr, nleft);
             if (nwrite < 0) {
                 if (errno == EINTR) {
-                    log(LOG_LEVEL::TRACE, "[galois head] write interrupt by EINTR.");
+                    TRACE("[galois head] write interrupt by EINTR.", "");
                     continue;
                 } else {
-                    log(LOG_LEVEL::TRACE, "[galois head] write fail return[%d] errno[%d|%s]", 
+                    TRACE("[galois head] write fail return[%d] errno[%d|%s]", 
                         nwrite, errno, strerror(errno));
                     return -1;
                 }
             } else if (nwrite == 0) {
-                log(LOG_LEVEL::TRACE, "[galois head] write connection invalid write return [0]");
+                TRACE("[galois head] write connection invalid write return [0]", "");
                 break;
             }
             ptr += nwrite;
             nleft -= nwrite;
-            log(LOG_LEVEL::TRACE, "[galois head] write[%u] left[%u]", nwrite, nleft);
+            TRACE("[galois head] write[%u] left[%u]", nwrite, nleft);
         } else if (presult == 0) {
-            log(LOG_LEVEL::TRACE, "[galois head] write poll timeout.");
+            TRACE("[galois head] write poll timeout.", "");
             break;
         } else {
-            log(LOG_LEVEL::WARNING, "[galois head] write poll fail.");
+            WARNING("[galois head] write poll fail.", "");
             return -1;
         }
     }
@@ -253,7 +253,7 @@ int ghead::poll_wrap(pollfd * fdarray,
                 return ret_val;
             }
         } else {
-            log(LOG_LEVEL::WARNING, "[galois head] poll error:[%d][%s]", errno, strerror(errno));
+            WARNING("[galois head] poll error:[%d][%s]", errno, strerror(errno));
             return ret_val;
         }
     }
@@ -268,7 +268,7 @@ bool ghead::set_sock_noblock(int fd)
     while ((flags = fcntl(fd, F_GETFL, 0)) == -1) {
         if (errno == EINTR)
             continue;
-        log(LOG_LEVEL::WARNING, "[galois head] fcntl(%d,F_GETFL) failed: [%d|%s].", 
+        WARNING("[galois head] fcntl(%d,F_GETFL) failed: [%d|%s].", 
             fd, errno, strerror(errno));
         return false;
     }
@@ -278,7 +278,7 @@ bool ghead::set_sock_noblock(int fd)
     while (fcntl(fd, F_SETFL, flags) == -1) {
         if (errno == EINTR)
             continue;
-        log(LOG_LEVEL::WARNING, "[galois head]  fcntl(%d,F_SETFL,%d) failed: [%d|%s].", 
+        WARNING("[galois head]  fcntl(%d,F_SETFL,%d) failed: [%d|%s].", 
             fd, flags, errno, strerror(errno));
         return false;
     }
